@@ -1,0 +1,13 @@
+= Demo project for DATAMONGO-2068
+
+Issue report link: https://jira.spring.io/browse/DATAMONGO-2068
+
+Tests should fail with `./mvnw test`. 2 known workarounds:
+
+. Comment out the override of the `spring-data-mongo` dependency version, in `pom.xml`
+. Create a `CRUDRepository` for the `SomeDoc` entity
+. Copy over the `MongoDataAutoConfiguration#mongoMappingContext` to a _separate_ `@Configuration` class, make sure that bean is registered _before_ any `@EnableMongoRepositories` `@Configuration` class hits (e.g. `@Import` it in so it's registered first).
+
+== Real use cases
+
+Main use case is building a super class document with polymorphic types, all with `@TypeAlias` overrides. If you build a `CRUDRepository` that just manages the super class, the subclass `@TypeAlias` registration will never happen and subclasses will never be registered. This is because the entirety of `@EntityScan` is skipped since it is not registered in `MongoDataAutoConfiguration` from Spring Boot.
